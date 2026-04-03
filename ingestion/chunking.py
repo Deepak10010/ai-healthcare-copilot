@@ -1,3 +1,5 @@
+# Breaks books into paragraphs
+
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 def split_documents(documents):

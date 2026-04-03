@@ -1,3 +1,5 @@
+# Controls the process
+
 import os
 from ingestion.loader import load_pdf
 from ingestion.chunking import split_documents
@@ -21,7 +23,7 @@ embeddings = get_embeddings()
 db = create_vector_store(chunks, embeddings)
 
 # Step 5: Ask Question
-query = "What is hypertension?"
+query = "What is Diabetes?"
 answer = ask_question(db, query)
 
 print("\nANSWER:\n", answer)
