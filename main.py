@@ -1,29 +1,50 @@
-# Controls the process
-
 import os
-from ingestion.loader import load_pdf
+from ingestion.loader import load_all_pdfs
 from ingestion.chunking import split_documents
 from ingestion.embedding import get_embeddings
 from vector_store.faiss_db import create_vector_store
-from pipeline.rag_pipeline import ask_question
-from dotenv import load_dotenv
+from pipeline.rag_pipeline import ask_question_agentic
 
-load_dotenv()
 
-# Step 1: Load
-docs = load_pdf("data/sample.pdf")
+def build_vector_db():
+    print("\n📥 Loading documents...")
+    docs = load_all_pdfs("data")  # ✅ MULTI-PDF
 
-# Step 2: Chunk
-chunks = split_documents(docs)
+    print(f"\n📄 Total documents loaded: {len(docs)}")
 
-# Step 3: Embeddings
-embeddings = get_embeddings()
+    print("\n✂️ Splitting into chunks...")
+    chunks = split_documents(docs)
 
-# Step 4: Vector DB
-db = create_vector_store(chunks, embeddings)
+    print(f"\n📊 Total chunks created: {len(chunks)}")
 
-# Step 5: Ask Question
-query = "What is Diabetes?"
-answer = ask_question(db, query)
+    print("\n🔢 Generating embeddings...")
+    embeddings = get_embeddings()
 
-print("\nANSWER:\n", answer)
+    print("\n🗄️ Creating vector database...")
+    db = create_vector_store(chunks, embeddings)
+
+    print("\n✅ Vector DB ready!\n")
+
+    return db
+
+
+def run_query_loop(db):
+    print("\n💬 You can now ask questions (type 'exit' to quit)\n")
+
+    while True:
+        query = input("👉 Enter your question: ")
+
+        if query.lower() == "exit":
+            print("\n👋 Exiting... Goodbye!")
+            break
+
+        answer = ask_question_agentic(db, query)
+
+        print("\n💡 Answer:\n")
+        print(answer)
+        print("\n" + "=" * 50 + "\n")
+
+
+if __name__ == "__main__":
+    db = build_vector_db()
+    run_query_loop(db)
