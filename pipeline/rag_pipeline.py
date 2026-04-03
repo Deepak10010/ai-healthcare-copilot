@@ -1,15 +1,10 @@
 from agents.planner import planner_agent
 from agents.retriever import retriever_agent
 from agents.generator import generator_agent
+from agents.evaluator import evaluator_agent
 
 
-def ask_question_agentic(db, query):
-    """
-    Full Agentic RAG Pipeline:
-    1. Planner Agent → decides steps
-    2. Retriever Agent → fetches relevant context
-    3. Generator Agent → produces answer
-    """
+def ask_question_agentic(db, query, max_retries=2):
 
     print("\n==============================")
     print("🧠 STEP 1: Planner Agent")
@@ -24,18 +19,32 @@ def ask_question_agentic(db, query):
 
     context = retriever_agent(db, query)
 
-    # Debug: show small preview of context
-    print("\n📄 Retrieved Context Preview:\n")
-    print(context[:500])  # first 500 chars
-
     print("\n==============================")
     print("🤖 STEP 3: Generator Agent")
     print("==============================")
 
-    answer = generator_agent(query, context)
+    attempt = 0
 
-    print("\n==============================")
-    print("✅ FINAL ANSWER")
-    print("==============================")
+    while attempt <= max_retries:
 
+        print(f"\n🔁 Attempt {attempt + 1}")
+
+        answer = generator_agent(query, context)
+
+        print("\n🧪 Evaluating answer...")
+        evaluation = evaluator_agent(query, context, answer)
+
+        print("\n📊 Evaluation Result:\n")
+        print(evaluation)
+
+        # Simple rule-based check
+        if "GOOD" in evaluation.upper():
+            print("\n✅ Answer accepted!")
+            return answer
+
+        print("\n⚠️ Answer not good, retrying...\n")
+
+        attempt += 1
+
+    print("\n❌ Max retries reached. Returning best attempt.")
     return answer

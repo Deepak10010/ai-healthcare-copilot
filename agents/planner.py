@@ -4,11 +4,13 @@ def planner_agent(query):
     llm = Ollama(model="llama3")
 
     prompt = f"""
-    You are an intelligent AI planner.
+    You are a planning agent for a RAG system.
 
-    Break the user query into clear steps needed to answer it.
+    ONLY break down the user query into steps.
+    DO NOT add external knowledge.
+    DO NOT assume facts not in the query.
 
-    Keep steps simple and structured.
+    Keep it simple and relevant to retrieval.
 
     Query:
     {query}
