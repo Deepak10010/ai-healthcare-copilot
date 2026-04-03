@@ -98,3 +98,10 @@ uvicorn api.app:app --reload
 # To launch the frontend
 
 streamlit run ui/app.py
+
+
+# To build Docker image
+docker build -t ai-copilot .
+
+# To run container
+docker run -p 8000:8000 ai-copilot
