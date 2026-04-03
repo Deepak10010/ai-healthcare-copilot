@@ -1,5 +1,5 @@
 import os
-from ingestion.loader import load_pdf
+from ingestion.loader import load_all_pdfs
 from ingestion.chunking import split_documents
 from ingestion.embedding import get_embeddings
 from vector_store.faiss_db import create_vector_store
@@ -8,7 +8,9 @@ from pipeline.rag_pipeline import ask_question_agentic
 
 def build_vector_db():
     print("\n📥 Loading documents...")
-    docs = load_pdf("data/sample.pdf")
+    docs = load_all_pdfs("data")  # ✅ MULTI-PDF
+
+    print(f"\n📄 Total documents loaded: {len(docs)}")
 
     print("\n✂️ Splitting into chunks...")
     chunks = split_documents(docs)

@@ -71,3 +71,22 @@ main.py	Controls the process
 # To activate the virtual environment
 .\venv\Scripts\Activate.ps1  
 
+flowchart TD
+    A[main.py] --> B[build_vector_db]
+    B --> C[load_pdf<br/>from ingestion/loader.py]
+    C --> D[split_documents<br/>from ingestion/chunking.py]
+    D --> E[get_embeddings<br/>from ingestion/embedding.py]
+    E --> F[create_vector_store<br/>from vector_store/faiss_db.py]
+    F --> G[Vector DB Ready]
+    
+    G --> H[run_query_loop]
+    H --> I[User Input Query]
+    I --> J[ask_question_agentic<br/>from pipeline/rag_pipeline.py]
+    
+    J --> K[Planner Agent<br/>agents/planner.py<br/>Breaks query into steps]
+    K --> L[Retriever Agent<br/>agents/retriever.py<br/>Fetches relevant context]
+    L --> M[Generator Agent<br/>agents/generator.py<br/>Produces final answer]
+    M --> N[Display Answer]
+    N --> O{Continue?}
+    O -->|Yes| I
+    O -->|No| P[Exit]
