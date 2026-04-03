@@ -65,3 +65,9 @@ vector DB	Stores knowledge
 retriever	Finds relevant info
 LLM	Explains answer
 main.py	Controls the process
+
+
+
+# To activate the virtual environment
+.\venv\Scripts\Activate.ps1  
+

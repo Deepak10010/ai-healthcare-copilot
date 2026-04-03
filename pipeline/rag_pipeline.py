@@ -1,30 +1,41 @@
-# from langchain_openai import ChatOpenAI
-from langchain_community.llms import Ollama
+from agents.planner import planner_agent
+from agents.retriever import retriever_agent
+from agents.generator import generator_agent
 
-def ask_question(db, query):
 
-    # Finds relevant info
-    retriever = db.as_retriever() 
-
-    # docs = retriever.get_relevant_documents(query)
-    docs = retriever.invoke(query)
-
-    context = "\n".join([doc.page_content for doc in docs])
-
-    # llm = ChatOpenAI(model="gpt-4") 
-    # Explains answer
-    llm = Ollama(model="llama3")
-
-    prompt = f"""
-    Use the context below to answer the question.
-
-    Context:
-    {context}
-
-    Question:
-    {query}
+def ask_question_agentic(db, query):
+    """
+    Full Agentic RAG Pipeline:
+    1. Planner Agent → decides steps
+    2. Retriever Agent → fetches relevant context
+    3. Generator Agent → produces answer
     """
 
-    response = llm.invoke(prompt)
+    print("\n==============================")
+    print("🧠 STEP 1: Planner Agent")
+    print("==============================")
 
-    return response
+    plan = planner_agent(query)
+    print(plan)
+
+    print("\n==============================")
+    print("🔎 STEP 2: Retriever Agent")
+    print("==============================")
+
+    context = retriever_agent(db, query)
+
+    # Debug: show small preview of context
+    print("\n📄 Retrieved Context Preview:\n")
+    print(context[:500])  # first 500 chars
+
+    print("\n==============================")
+    print("🤖 STEP 3: Generator Agent")
+    print("==============================")
+
+    answer = generator_agent(query, context)
+
+    print("\n==============================")
+    print("✅ FINAL ANSWER")
+    print("==============================")
+
+    return answer
