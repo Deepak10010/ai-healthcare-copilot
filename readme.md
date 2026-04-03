@@ -1,3 +1,11 @@
+graph LR
+  A[main.py] --> B[load_pdf]
+  B --> C[split_documents]
+  C --> D[get_embeddings]
+  D --> E[create_vector_store]
+  E --> F[ask_question]
+  F --> G[Ollama LLM]
+
 🔁 Step-by-step flow:
 1. main.py
 
