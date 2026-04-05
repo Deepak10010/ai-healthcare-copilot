@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
+import traceback
 
 from ingestion.loader import load_all_pdfs
 from ingestion.chunking import split_documents
@@ -9,8 +10,6 @@ from pipeline.rag_pipeline import ask_question_agentic
 
 app = FastAPI()
 
-
-# -------- Load ALL documents at startup --------
 print("📥 Loading all PDFs from data folder...")
 docs = load_all_pdfs("data")
 
@@ -30,18 +29,15 @@ db = create_vector_store(chunks, embeddings)
 print("✅ System ready!")
 
 
-# -------- Request Schema --------
 class QueryRequest(BaseModel):
     query: str
 
 
-# -------- Health Check --------
 @app.get("/")
 def home():
     return {"message": "AI Healthcare Copilot API is running 🚀"}
 
 
-# -------- Main Endpoint --------
 @app.post("/ask")
 def ask(request: QueryRequest):
     try:
@@ -51,8 +47,10 @@ def ask(request: QueryRequest):
             "status": "success"
         }
     except Exception as e:
+        traceback.print_exc()
         return {
             "answer": "Something went wrong",
             "error": str(e),
+            "traceback": traceback.format_exc(),
             "status": "error"
         }

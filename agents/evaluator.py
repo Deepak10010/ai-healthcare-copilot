@@ -1,34 +1,29 @@
-from langchain_community.llms import Ollama
+from agents.llm import llm
 
 
-def evaluator_agent(query, context, answer):
-    llm = Ollama(model="llama3")
-
+def evaluator_agent(query: str, context: str, answer: str) -> str:
     prompt = f"""
-    You are an AI evaluator.
+You are an AI evaluator.
 
-    Evaluate the answer based ONLY on the context.
+Evaluate the answer based ONLY on the context.
 
-    Check:
-    1. Is the answer supported by the context?
-    2. Is it relevant to the question?
-    3. Is there any hallucination?
+Check:
+1. Is the answer supported by the context?
+2. Is it relevant to the question?
+3. Is there any hallucination?
 
-    Context:
-    {context}
+Context:
+{context}
 
-    Question:
-    {query}
+Question:
+{query}
 
-    Answer:
-    {answer}
+Answer:
+{answer}
 
-    Respond in this format:
-    Score: (0-10)
-    Verdict: (GOOD / BAD)
-    Feedback: (short explanation)
-    """
-
-    evaluation = llm.invoke(prompt)
-
-    return evaluation
+Respond in this exact format:
+Score: (0-10)
+Verdict: (GOOD / BAD)
+Feedback: (short explanation)
+"""
+    return llm.invoke(prompt)

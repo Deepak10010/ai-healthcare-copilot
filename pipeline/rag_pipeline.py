@@ -4,29 +4,27 @@ from agents.generator import generator_agent
 from agents.evaluator import evaluator_agent
 
 
-def ask_question_agentic(db, query, max_retries=2):
-
+def ask_question_agentic(db, query: str, max_retries: int = 0) -> str:
     print("\n==============================")
     print("🧠 STEP 1: Planner Agent")
     print("==============================")
-
     plan = planner_agent(query)
     print(plan)
 
     print("\n==============================")
     print("🔎 STEP 2: Retriever Agent")
     print("==============================")
-
     context = retriever_agent(db, query)
+    print(context[:1000])
 
     print("\n==============================")
     print("🤖 STEP 3: Generator Agent")
     print("==============================")
 
     attempt = 0
+    answer = ""
 
     while attempt <= max_retries:
-
         print(f"\n🔁 Attempt {attempt + 1}")
 
         answer = generator_agent(query, context)
@@ -37,13 +35,11 @@ def ask_question_agentic(db, query, max_retries=2):
         print("\n📊 Evaluation Result:\n")
         print(evaluation)
 
-        # Simple rule-based check
         if "GOOD" in evaluation.upper():
             print("\n✅ Answer accepted!")
             return answer
 
         print("\n⚠️ Answer not good, retrying...\n")
-
         attempt += 1
 
     print("\n❌ Max retries reached. Returning best attempt.")

@@ -105,3 +105,9 @@ docker build -t ai-copilot .
 
 # To run container
 docker run -p 8000:8000 ai-copilot
+
+# To build Docker image
+docker compose build --no-cache
+
+# To run the Docker image
+docker compose up

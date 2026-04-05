@@ -1,4 +1,3 @@
-import os
 from ingestion.loader import load_all_pdfs
 from ingestion.chunking import split_documents
 from ingestion.embedding import get_embeddings
@@ -8,7 +7,7 @@ from pipeline.rag_pipeline import ask_question_agentic
 
 def build_vector_db():
     print("\n📥 Loading documents...")
-    docs = load_all_pdfs("data")  # ✅ MULTI-PDF
+    docs = load_all_pdfs("data")
 
     print(f"\n📄 Total documents loaded: {len(docs)}")
 
@@ -24,7 +23,6 @@ def build_vector_db():
     db = create_vector_store(chunks, embeddings)
 
     print("\n✅ Vector DB ready!\n")
-
     return db
 
 
