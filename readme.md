@@ -345,17 +345,7 @@ conda install -c conda-forge faiss-cpu
 4. Push to the branch: `git push origin feature/your-feature`
 5. Submit a pull request
 
-## 📝 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 📞 Support
-
-For issues and questions:
-
-- Open an issue on GitHub
-- Check existing documentation in the `docs/` folder
-- Review the troubleshooting section above
 
 ## 👤 Author
 
