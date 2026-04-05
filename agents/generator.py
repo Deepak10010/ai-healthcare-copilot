@@ -1,23 +1,20 @@
-from langchain_community.llms import Ollama
+from agents.llm import llm
 
-def generator_agent(query, context):
-    llm = Ollama(model="llama3")
 
+def generator_agent(query: str, context: str) -> str:
     prompt = f"""
-    You are a medical assistant.
+You are a medical assistant.
 
-    Use ONLY the provided context to answer the question.
-    If the answer is not in the context, say "I don't know".
+Use ONLY the provided context to answer the question.
+If the answer is not in the context, say exactly:
+"I don't know based on the provided documents."
 
-    Context:
-    {context}
+Context:
+{context}
 
-    Question:
-    {query}
+Question:
+{query}
 
-    Answer clearly:
-    """
-
-    response = llm.invoke(prompt)
-
-    return response
+Answer:
+"""
+    return llm.invoke(prompt)

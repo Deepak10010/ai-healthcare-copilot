@@ -1,17 +1,37 @@
 import streamlit as st
 import requests
 
-st.title("🧠 AI Healthcare Copilot")
+st.set_page_config(page_title="AI Healthcare Copilot", page_icon="🩺", layout="centered")
 
-query = st.text_input("Ask a question")
+st.title("AI Healthcare Copilot")
 
-if st.button("Ask"):
-    if query:
-        response = requests.post(
-            "http://127.0.0.1:8000/ask",
-            json={"query": query}
-        )
-        answer = response.json()["answer"]
+query = st.text_input("Ask a healthcare question:")
 
-        st.subheader("Answer:")
-        st.write(answer)
+if st.button("Submit"):
+    if query.strip():
+        try:
+            response = requests.post(
+                "http://backend:8000/ask",
+                json={"query": query},
+                timeout=180
+            )
+
+            data = response.json()
+
+            st.subheader("Raw API response:")
+            st.json(data)
+
+            if isinstance(data, dict):
+                if data.get("status") == "success":
+                    st.subheader("Answer:")
+                    st.write(data.get("answer", "No answer returned"))
+                else:
+                    st.error(data.get("error", "Unknown backend error"))
+                    if data.get("traceback"):
+                        with st.expander("Traceback"):
+                            st.code(data["traceback"])
+            else:
+                st.error(f"Unexpected response: {data}")
+
+        except Exception as e:
+            st.error(f"Frontend request failed: {e}")

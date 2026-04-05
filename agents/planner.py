@@ -1,23 +1,18 @@
-from langchain_community.llms import Ollama
+from agents.llm import llm
 
-def planner_agent(query):
-    llm = Ollama(model="llama3")
 
+def planner_agent(query: str) -> str:
     prompt = f"""
-    You are a planning agent for a RAG system.
+You are a planning agent for a RAG system.
 
-    ONLY break down the user query into steps.
-    DO NOT add external knowledge.
-    DO NOT assume facts not in the query.
+ONLY break down the user query into simple retrieval-focused steps.
+DO NOT add external knowledge.
+DO NOT assume facts not in the query.
+Keep it short and relevant.
 
-    Keep it simple and relevant to retrieval.
+Query:
+{query}
 
-    Query:
-    {query}
-
-    Steps:
-    """
-
-    response = llm.invoke(prompt)
-
-    return response
+Steps:
+"""
+    return llm.invoke(prompt)
