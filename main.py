@@ -1,45 +1,60 @@
-from ingestion.loader import load_all_pdfs
+import logging
+
+from config import settings
+from logging_config import setup_logging
+from ingestion.loader import load_all_documents
 from ingestion.chunking import split_documents
 from ingestion.embedding import get_embeddings
-from vector_store.faiss_db import create_vector_store
+from vector_store.faiss_db import get_or_create_vector_store
 from pipeline.rag_pipeline import ask_question_agentic
+
+setup_logging()
+logger = logging.getLogger(__name__)
 
 
 def build_vector_db():
-    print("\n📥 Loading documents...")
-    docs = load_all_pdfs("data")
+    logger.info("Loading documents...")
+    docs = load_all_documents()
+    logger.info(f"Total documents loaded: {len(docs)}")
 
-    print(f"\n📄 Total documents loaded: {len(docs)}")
-
-    print("\n✂️ Splitting into chunks...")
+    logger.info("Splitting into chunks...")
     chunks = split_documents(docs)
+    logger.info(f"Total chunks created: {len(chunks)}")
 
-    print(f"\n📊 Total chunks created: {len(chunks)}")
-
-    print("\n🔢 Generating embeddings...")
+    logger.info("Generating embeddings...")
     embeddings = get_embeddings()
 
-    print("\n🗄️ Creating vector database...")
-    db = create_vector_store(chunks, embeddings)
-
-    print("\n✅ Vector DB ready!\n")
+    logger.info("Building vector database...")
+    db = get_or_create_vector_store(
+        chunks, embeddings, force_rebuild=settings.force_rebuild
+    )
+    logger.info("Vector DB ready!")
     return db
 
 
 def run_query_loop(db):
-    print("\n💬 You can now ask questions (type 'exit' to quit)\n")
+    print("\nYou can now ask questions (type 'exit' to quit)\n")
 
     while True:
-        query = input("👉 Enter your question: ")
+        query = input("Enter your question: ")
 
         if query.lower() == "exit":
-            print("\n👋 Exiting... Goodbye!")
+            print("\nExiting... Goodbye!")
             break
 
-        answer = ask_question_agentic(db, query)
+        result = ask_question_agentic(db, query)
 
-        print("\n💡 Answer:\n")
-        print(answer)
+        print(f"\nAnswer:\n{result['answer']}")
+
+        if result.get("sources"):
+            print("\nSources:")
+            for src in result["sources"]:
+                page = src.get("page")
+                page_text = f", Page {page + 1}" if page is not None else ""
+                print(f"  - {src['document']}{page_text}")
+
+        print(f"\nQuery type: {result.get('query_type', 'N/A')}")
+        print(f"Confidence: {result.get('score', 'N/A')}/10")
         print("\n" + "=" * 50 + "\n")
 
 

@@ -8,6 +8,17 @@ services:
       - "8000:8000"
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    volumes:
+      - faiss_data:/app/vector_store/index
+      - ./data:/app/data
+    environment:
+      - COPILOT_LLM_MODEL=${COPILOT_LLM_MODEL:-llama3}
+      - COPILOT_OLLAMA_BASE_URL=${COPILOT_OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      - COPILOT_API_KEY=${COPILOT_API_KEY:-}
+      - COPILOT_LOG_LEVEL=${COPILOT_LOG_LEVEL:-INFO}
+      - COPILOT_FORCE_REBUILD=${COPILOT_FORCE_REBUILD:-false}
+      - COPILOT_RERANK_ENABLED=${COPILOT_RERANK_ENABLED:-true}
+      - COPILOT_ROUTER_ENABLED=${COPILOT_ROUTER_ENABLED:-true}
     restart: unless-stopped
 
   frontend:
@@ -20,3 +31,6 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
+
+volumes:
+  faiss_data:
