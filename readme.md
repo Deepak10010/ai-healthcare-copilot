@@ -401,6 +401,10 @@ COPILOT_RERANK_ENABLED=false python main.py
 | Rate Limiting | SlowAPI |
 | Containers | Docker + Docker Compose |
 
+## Documentation
+
+- [RAG Explained — What, Why, and Use Cases](docs/RAG-EXPLAINED.md) — Deep dive into what RAG is, why it's used instead of plain LLMs, comparison with alternatives, and real-world use cases in healthcare and education.
+
 ## Author
 
 **Deepak Lokanath**
