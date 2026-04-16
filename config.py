@@ -37,7 +37,7 @@ class Settings(BaseSettings):
     # Vector store
     force_rebuild: bool = False
 
-    model_config = {"env_prefix": "COPILOT_", "env_file": ".env"}
+    model_config = {"env_prefix": "COPILOT_", "env_file": ".env", "extra": "ignore"}
 
 
 settings = Settings()
