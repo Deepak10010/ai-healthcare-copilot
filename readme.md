@@ -133,7 +133,7 @@ You have three ways to use the system:
 Start the backend and frontend in separate terminals:
 
 ```bash
-# Terminal 1: Backend API
+# Terminal 1: Backend API.
 uvicorn api.app:app --host 0.0.0.0 --port 8000
 
 # Terminal 2: Streamlit UI
