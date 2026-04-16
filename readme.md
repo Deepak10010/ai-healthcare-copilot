@@ -2,6 +2,8 @@
 
 An intelligent document-backed question-answering system powered by Retrieval-Augmented Generation (RAG) and multi-agent AI orchestration. Healthcare professionals can query medical documents using natural language and receive accurate, cited answers.
 
+![AI Healthcare Copilot Demo](assets/demo-screenshot.png)
+
 ## Features
 
 - **Multi-Agent Pipeline** — 6 specialized agents: Router, Planner, Retriever, Re-ranker, Generator, Evaluator
