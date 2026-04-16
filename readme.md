@@ -1,194 +1,211 @@
-# 🏥 AI Healthcare Copilot
+# AI Healthcare Copilot
 
-An intelligent document-backed question-answering system powered by Retrieval-Augmented Generation (RAG) and multi-agent AI orchestration. This framework enables healthcare professionals to query medical documents, PDFs, and knowledge bases using natural language.
+An intelligent document-backed question-answering system powered by Retrieval-Augmented Generation (RAG) and multi-agent AI orchestration. Healthcare professionals can query medical documents using natural language and receive accurate, cited answers.
 
-## 🌟 Features
+## Features
 
-- **🤖 Multi-Agent Architecture** - Specialized agents for planning, retrieval, generation, and evaluation
-- **📚 RAG Pipeline** - Retrieves relevant context from documents and generates accurate, context-aware responses
-- **⚡ FAISS Vector Store** - Fast similarity search across document embeddings
-- **🧠 LLM Integration** - Seamless integration with language models (Ollama-compatible)
-- **🎯 Intelligent Query Planning** - Breaks down complex queries into actionable steps
-- **📄 Multi-Format Support** - Loads and processes PDFs and other documents
-- **🐳 Containerized** - Full Docker and Docker Compose support for easy deployment
-- **🌐 Web UI** - Streamlit-based frontend for user interactions
-- **⚙️ REST API** - FastAPI backend for programmatic access
+- **Multi-Agent Pipeline** — 6 specialized agents: Router, Planner, Retriever, Re-ranker, Generator, Evaluator
+- **RAG with Source Citations** — every answer shows which documents and pages it came from
+- **Query Routing** — classifies queries (factual, comparative, summarization) and rejects out-of-scope questions
+- **Cross-Encoder Re-ranking** — improves retrieval precision by re-scoring FAISS results with a cross-encoder model
+- **Conversation Memory** — session-based chat history so follow-up questions work naturally
+- **Persistent Vector Store** — FAISS index saved to disk, skips re-ingestion on restart
+- **Multi-Format Ingestion** — supports PDF, TXT, and DOCX documents
+- **Document Upload** — add new documents at runtime via the UI or API
+- **Chat UI** — Streamlit-based chat interface with message history, sources, and confidence scores
+- **REST API** — FastAPI backend with auth, rate limiting, CORS, health checks
+- **Centralized Configuration** — all settings via environment variables (`COPILOT_*` prefix)
+- **Structured Logging** — proper Python logging with pipeline stage timing
+- **Dockerized** — Docker Compose with volume persistence and environment passthrough
 
-## 🏗️ Architecture Overview
-
-The system follows a layered architecture with five main components:
+## Architecture
 
 ```
-User Interface (Streamlit)
-         ↓
-   API Server (FastAPI)
-         ↓
-   RAG Pipeline Service
-         ↓
-   Multi-Agent System
-   ├─ LLM Service
-   ├─ Planner Agent
-   ├─ Generator Agent
-   ├─ Evaluator Agent
-   └─ Retriever Agent
-         ↓
-   Vector Store (FAISS)
+User Query
+     |
+     v
++------------------+
+|  Query Router    |  Classifies: factual / comparative / summarization / out_of_scope
++------------------+
+     |
+     v
++------------------+
+|  Planner Agent   |  Breaks query into retrieval-focused steps
++------------------+
+     |
+     v
++------------------+
+|  Retriever Agent |  FAISS similarity search -> Cross-encoder re-ranking
++------------------+
+     |
+     v
++------------------+     +---------------------+
+|  Generator Agent | <-- | Conversation Memory |  (session-based chat history)
++------------------+     +---------------------+
+     |
+     v
++------------------+
+|  Evaluator Agent |  Score 0-10, Verdict: GOOD/BAD, retry if BAD
++------------------+
+     |
+     v
+Answer + Sources + Confidence Score
 ```
 
-**Data Flow:**
+**Data Ingestion Flow:**
+```
+PDF/TXT/DOCX -> Loader -> Chunker (500 tokens, 50 overlap) -> Embeddings (all-MiniLM-L6-v2) -> FAISS Index (persisted to disk)
+```
 
-1. Documents are loaded and split into chunks
-2. Chunks are converted to embeddings
-3. Embeddings are stored in FAISS vector database
-4. User queries trigger the multi-agent pipeline
-5. Relevant context is retrieved and used to generate responses
+## Prerequisites
 
-## 📋 Prerequisites
+- **Python 3.9+** — [Download](https://www.python.org/downloads/)
+- **Ollama** with `llama3` model — [Download](https://ollama.com/)
+- **Docker** (optional) — [Download](https://www.docker.com/products/docker-desktop)
 
-Before getting started, ensure you have the following installed on your system:
+**System Requirements:**
+- RAM: 8GB+ recommended (LLM + embeddings + re-ranker)
+- Disk: 5GB+ for models and vector index
+- Internet: required for first-time model downloads
 
-### **Required Software**
-
-- **Python 3.9+** - [Download](https://www.python.org/downloads/)
-- **Docker** (optional, for containerized deployment) - [Download](https://www.docker.com/products/docker-desktop)
-- **Git** - [Download](https://git-scm.com/downloads)
-
-### **System Requirements**
-
-- **RAM**: Minimum 4GB (8GB+ recommended for LLM operations)
-- **Disk Space**: 5GB+ for models and vector databases
-- **Internet**: Required for downloading dependencies and models
-
-## 🚀 Installation & Setup
-
-### **Option 1: Local Setup (Recommended for Development)**
-
-#### **Windows**
-
-1. **Clone the repository**
-
-   ```bash
-   git clone https://github.com/yourusername/ai-healthcare-copilot.git
-   cd ai-healthcare-copilot
-   ```
-
-2. **Create a Python virtual environment**
-
-   ```bash
-   python -m venv venv
-   .\venv\Scripts\Activate.ps1
-   ```
-
-3. **Install backend dependencies**
-
-   ```bash
-   pip install -r requirements-backend.txt
-   ```
-
-4. **Install frontend dependencies**
-
-   ```bash
-   pip install -r requirements-frontend.txt
-   ```
-
-5. **Verify Installation**
-   ```bash
-   python -c "import torch, langchain, faiss; print('All dependencies installed successfully!')"
-   ```
-
-#### **macOS / Linux**
-
-1. **Clone the repository**
-
-   ```bash
-   git clone https://github.com/yourusername/ai-healthcare-copilot.git
-   cd ai-healthcare-copilot
-   ```
-
-2. **Create a Python virtual environment**
-
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate
-   ```
-
-3. **Install backend dependencies**
-
-   ```bash
-   pip install -r requirements-backend.txt
-   ```
-
-4. **Install frontend dependencies**
-   ```bash
-   pip install -r requirements-frontend.txt
-   ```
-
-### **Option 2: Docker Deployment (Recommended for Production)**
-
-1. **Build the Docker image**
-
-   ```bash
-   docker compose build --no-cache
-   ```
-
-2. **Run the containerized application**
-
-   ```bash
-   docker compose up
-   ```
-
-   The application will be available at:
-   - Frontend: `http://localhost:8501`
-   - Backend API: `http://localhost:8000`
-
-## 🎯 How to Run
-
-### **Local Development**
-
-#### **Start the Backend API Server**
+### Install Ollama and pull the model
 
 ```bash
-# Windows
-.\venv\Scripts\Activate.ps1
-uvicorn api.app:app --reload --host 0.0.0.0 --port 8000
-
-# macOS / Linux
-source venv/bin/activate
-uvicorn api.app:app --reload --host 0.0.0.0 --port 8000
+# After installing Ollama:
+ollama pull llama3
 ```
 
-The API will be accessible at `http://localhost:8000`
+Ollama must be running at `http://localhost:11434` (default) before starting the app.
 
-#### **Start the Frontend (in a new terminal)**
+## Installation
+
+### Option 1: Local Setup
 
 ```bash
-# Windows
-.\venv\Scripts\Activate.ps1
-streamlit run ui/app.py
+# Clone the repository
+git clone https://github.com/yourusername/ai-healthcare-copilot.git
+cd ai-healthcare-copilot
 
-# macOS / Linux
+# Create virtual environment
+python -m venv venv
+
+# Activate (Windows)
+.\venv\Scripts\Activate.ps1
+
+# Activate (macOS / Linux)
 source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements-backend.txt
+pip install -r requirements-frontend.txt
+```
+
+### Option 2: Docker
+
+```bash
+docker compose build --no-cache
+docker compose up
+```
+
+Frontend: `http://localhost:8501` | Backend API: `http://localhost:8000`
+
+## How to Use
+
+### 1. Add Your Medical Documents
+
+Place PDF, TXT, or DOCX files in the `data/` folder:
+
+```
+data/
+  diabetes.pdf
+  heart_disease.pdf
+  hypertension.pdf
+  clinical_notes.txt
+  treatment_guide.docx
+```
+
+### 2. Run the Application
+
+You have three ways to use the system:
+
+#### Option A: Web UI (Recommended)
+
+Start the backend and frontend in separate terminals:
+
+```bash
+# Terminal 1: Backend API
+uvicorn api.app:app --host 0.0.0.0 --port 8000
+
+# Terminal 2: Streamlit UI
 streamlit run ui/app.py
 ```
 
-The UI will open at `http://localhost:8501`
+Open `http://localhost:8501` in your browser. The chat interface lets you:
+- Ask questions in natural language
+- See source citations for every answer
+- View confidence scores and query classification
+- Upload new documents via the sidebar
+- Start new conversations with the "New Conversation" button
 
-#### **Run the Main Script**
+#### Option B: Command Line
 
 ```bash
-# Windows
-.\venv\Scripts\Activate.ps1
-python main.py
-
-# macOS / Linux
-source venv/bin/activate
 python main.py
 ```
 
-### **Docker Deployment**
+This starts an interactive loop where you type questions and get answers with sources:
+
+```
+Enter your question: What are the symptoms of diabetes?
+
+Answer:
+Based on the documents, the common symptoms of diabetes include...
+
+Sources:
+  - diabetes.pdf, Page 3
+  - diabetes.pdf, Page 7
+
+Query type: factual
+Confidence: 8/10
+```
+
+Type `exit` to quit.
+
+#### Option C: REST API
 
 ```bash
-# Build and run all services
+# Start the API server
+uvicorn api.app:app --host 0.0.0.0 --port 8000
+```
+
+Then use curl, Postman, or any HTTP client:
+
+```bash
+# Ask a question
+curl -X POST http://localhost:8000/ask \
+  -H "Content-Type: application/json" \
+  -d '{"query": "What are the symptoms of diabetes?"}'
+```
+
+Response:
+```json
+{
+  "answer": "Based on the documents, the common symptoms include...",
+  "sources": [
+    {"document": "diabetes.pdf", "page": 2},
+    {"document": "diabetes.pdf", "page": 5}
+  ],
+  "score": 8,
+  "query_type": "factual",
+  "timing": {"router": 0.12, "planner": 0.45, "retriever": 0.08, "generator_attempt_1": 1.82, "evaluator": 1.05},
+  "status": "success"
+}
+```
+
+#### Option D: Docker
+
+```bash
+# Build and run
 docker compose up --build
 
 # Run in background
@@ -197,160 +214,191 @@ docker compose up -d
 # View logs
 docker compose logs -f
 
-# Stop all services
+# Stop
 docker compose down
 ```
 
-## 📁 Project Structure
+### 3. Upload Documents at Runtime
+
+You can add new documents without restarting the application:
+
+**Via the UI:** Use the "Upload Document" section in the sidebar.
+
+**Via the API:**
+```bash
+curl -X POST http://localhost:8000/upload \
+  -F "file=@path/to/new_document.pdf"
+```
+
+The document is immediately chunked, embedded, and added to the vector index.
+
+## API Reference
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/` | API status |
+| GET | `/health` | System health (model info, document count, feature flags) |
+| POST | `/ask` | Ask a question (accepts `query` and optional `session_id`) |
+| POST | `/session` | Create a new conversation session |
+| GET | `/session/{id}/history` | Get conversation history for a session |
+| POST | `/upload` | Upload and index a new document (PDF/TXT/DOCX) |
+
+### Conversation Sessions
+
+To maintain context across follow-up questions:
+
+```bash
+# 1. Create a session
+curl -X POST http://localhost:8000/session
+# Returns: {"session_id": "abc-123-..."}
+
+# 2. Ask with session_id
+curl -X POST http://localhost:8000/ask \
+  -H "Content-Type: application/json" \
+  -d '{"query": "What is diabetes?", "session_id": "abc-123-..."}'
+
+# 3. Follow-up question (remembers context)
+curl -X POST http://localhost:8000/ask \
+  -H "Content-Type: application/json" \
+  -d '{"query": "What about its treatment?", "session_id": "abc-123-..."}'
+
+# 4. View history
+curl http://localhost:8000/session/abc-123-.../history
+```
+
+## Configuration
+
+All settings can be overridden via environment variables with the `COPILOT_` prefix:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `COPILOT_DATA_DIR` | `data` | Folder containing documents |
+| `COPILOT_LLM_MODEL` | `llama3` | Ollama model name |
+| `COPILOT_OLLAMA_BASE_URL` | `http://host.docker.internal:11434` | Ollama server URL |
+| `COPILOT_CHUNK_SIZE` | `500` | Document chunk size in characters |
+| `COPILOT_CHUNK_OVERLAP` | `50` | Overlap between chunks |
+| `COPILOT_RETRIEVER_K` | `3` | Number of documents to retrieve |
+| `COPILOT_RERANK_ENABLED` | `true` | Enable cross-encoder re-ranking |
+| `COPILOT_ROUTER_ENABLED` | `true` | Enable query classification routing |
+| `COPILOT_MAX_RETRIES` | `1` | Max generator retries on BAD evaluation |
+| `COPILOT_API_KEY` | _(empty)_ | API key for auth (empty = no auth) |
+| `COPILOT_RATE_LIMIT_PER_MINUTE` | `30` | Max API requests per minute per IP |
+| `COPILOT_LOG_LEVEL` | `INFO` | Logging level (DEBUG, INFO, WARNING, ERROR) |
+| `COPILOT_FORCE_REBUILD` | `false` | Force rebuild vector store on startup |
+
+Example with environment variables:
+```bash
+COPILOT_LLM_MODEL=llama3.1 COPILOT_RETRIEVER_K=5 COPILOT_LOG_LEVEL=DEBUG python main.py
+```
+
+Or create a `.env` file:
+```env
+COPILOT_LLM_MODEL=llama3
+COPILOT_OLLAMA_BASE_URL=http://localhost:11434
+COPILOT_API_KEY=my-secret-key
+COPILOT_LOG_LEVEL=INFO
+```
+
+## Project Structure
 
 ```
 ai-healthcare-copilot/
-├── main.py                    # Entry point for CLI application
-├── requirements-backend.txt   # Backend Python dependencies
-├── requirements-frontend.txt  # Frontend Python dependencies
-├── docker-compose.yml         # Docker compose configuration
-├── Dockerfile.backend         # Backend container definition
-├── Dockerfile.frontend        # Frontend container definition
+├── main.py                        # CLI entry point
+├── config.py                      # Centralized settings (env var overrides)
+├── logging_config.py              # Structured logging + pipeline timer
+├── requirements-backend.txt       # Backend dependencies
+├── requirements-frontend.txt      # Frontend dependencies
+├── docker-compose.yml             # Container orchestration
+├── Dockerfile.backend             # Backend container
+├── Dockerfile.frontend            # Frontend container
 │
-├── agents/                    # AI Agent modules
-│   ├── planner.py            # Query planning agent
-│   ├── retriever.py          # Document retrieval agent
-│   ├── generator.py          # Response generation agent
-│   ├── evaluator.py          # Response evaluation agent
-│   └── llm.py                # LLM service wrapper
+├── agents/                        # AI Agent modules
+│   ├── llm.py                    # LLM service wrapper (Ollama)
+│   ├── router.py                 # Query classification & routing
+│   ├── planner.py                # Query planning
+│   ├── retriever.py              # Document retrieval + source citations
+│   ├── reranker.py               # Cross-encoder re-ranking
+│   ├── generator.py              # Answer generation (with chat history)
+│   └── evaluator.py              # Answer quality evaluation
 │
-├── api/                       # FastAPI backend
-│   └── app.py                # REST API endpoints
+├── pipeline/                      # Orchestration
+│   └── rag_pipeline.py           # Full RAG pipeline coordination
 │
-├── ingestion/                 # Data processing pipeline
-│   ├── loader.py             # Document loading
-│   ├── chunking.py           # Text chunking strategies
-│   └── embedding.py          # Embedding generation
+├── memory/                        # Conversation state
+│   └── conversation.py           # Session-based chat history
 │
-├── pipeline/                  # Core processing pipeline
-│   └── rag_pipeline.py       # RAG orchestration
+├── ingestion/                     # Data processing
+│   ├── loader.py                 # Multi-format document loading
+│   ├── chunking.py               # Text chunking
+│   └── embedding.py              # Embedding generation
 │
-├── vector_store/              # Vector database
-│   └── faiss_db.py           # FAISS vector store management
+├── vector_store/                  # Vector database
+│   ├── faiss_db.py               # FAISS create/save/load/merge
+│   └── index/                    # Persisted FAISS index (auto-generated)
 │
-├── ui/                        # Streamlit frontend
-│   └── app.py                # Web interface
+├── api/                           # REST API
+│   └── app.py                    # FastAPI with auth, rate limiting, CORS
 │
-└── data/                      # Data storage
-    ├── pdfs/                 # Input PDF documents
-    └── vector_db/            # Persisted vector store
+├── ui/                            # Web frontend
+│   └── app.py                    # Streamlit chat interface
+│
+└── data/                          # Document storage
+    ├── diabetes.pdf
+    ├── heart_disease.pdf
+    ├── hypertension.pdf
+    └── sample.pdf
 ```
 
-## 🔄 Workflow: From Documents to Answers
+## Troubleshooting
 
-### **1. Data Ingestion Phase**
-
+**Ollama not running:**
 ```
-PDF Document → loader.py → Extract Text
-         ↓
-    chunking.py → Split into Chunks
-         ↓
-    embedding.py → Generate Embeddings
-         ↓
-    faiss_db.py → Store in Vector DB
+Connection refused to http://localhost:11434
 ```
+Start Ollama: `ollama serve` and ensure `llama3` is pulled: `ollama pull llama3`
 
-### **2. Query Processing Phase**
-
-```
-User Query
-   ↓
-Planner Agent → Break Query into Steps
-   ↓
-Retriever Agent → Fetch Relevant Context
-   ↓
-Generator Agent → Generate Response
-   ↓
-Evaluator Agent → Assess Quality
-   ↓
-Display Answer
-```
-
-## 🛠️ API Endpoints
-
-### **Health Check**
-
+**For local development**, change the Ollama URL:
 ```bash
-curl http://localhost:8000/health
+COPILOT_OLLAMA_BASE_URL=http://localhost:11434 python main.py
+```
+The default `host.docker.internal` is for Docker. Locally, use `localhost`.
+
+**Port already in use:**
+```bash
+uvicorn api.app:app --port 8001
+streamlit run ui/app.py --server.port 8502
 ```
 
-### **Query Endpoint**
-
+**FAISS index stale after changing documents:**
 ```bash
-curl -X POST http://localhost:8000/api/query \
-  -H "Content-Type: application/json" \
-  -d '{
-    "query": "What are the symptoms of diabetes?",
-    "top_k": 5
-  }'
+COPILOT_FORCE_REBUILD=true python main.py
 ```
 
-### **Ingest Document**
-
-```bash
-curl -X POST http://localhost:8000/api/ingest \
-  -F "file=@path/to/document.pdf"
-```
-
-## 📦 Adding Custom Documents
-
-1. **Place your PDF files** in the `data/pdfs/` directory
-2. **Run the ingestion pipeline**:
-   ```bash
-   python main.py --ingest
-   ```
-3. **Query your documents** via the UI or API
-
-## 🐛 Troubleshooting
-
-### **Virtual Environment Issues (Windows)**
-
-```bash
-# If activation fails, try:
+**Virtual environment activation (Windows PowerShell):**
+```powershell
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 .\venv\Scripts\Activate.ps1
 ```
 
-### **Port Already in Use**
-
+**Out of memory:** Disable re-ranking (most memory-hungry component):
 ```bash
-# Change the port in your startup command:
-uvicorn api.app:app --reload --port 8001
-streamlit run ui/app.py --server.port 8502
+COPILOT_RERANK_ENABLED=false python main.py
 ```
 
-### **FAISS Build Errors**
+## Tech Stack
 
-```bash
-# Reinstall FAISS from conda
-conda install -c conda-forge faiss-cpu
-```
+| Component | Technology |
+|-----------|------------|
+| LLM | Ollama (Llama3) via LangChain |
+| Embeddings | HuggingFace all-MiniLM-L6-v2 |
+| Re-ranking | sentence-transformers CrossEncoder |
+| Vector Store | FAISS (Facebook AI Similarity Search) |
+| Backend | FastAPI + Uvicorn |
+| Frontend | Streamlit |
+| Auth | API key header (X-API-Key) |
+| Rate Limiting | SlowAPI |
+| Containers | Docker + Docker Compose |
 
-### **Out of Memory**
-
-- Reduce the chunk size in `ingestion/chunking.py`
-- Use a smaller embedding model
-- Process documents in batches
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/your-feature`
-3. Commit your changes: `git commit -m 'Add your feature'`
-4. Push to the branch: `git push origin feature/your-feature`
-5. Submit a pull request
-
-
-
-## 👤 Author
+## Author
 
 **Deepak Lokanath**
-
----
-
-**Happy Querying! 🚀**
