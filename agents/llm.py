@@ -1,6 +1,8 @@
 from langchain_ollama import OllamaLLM
 
+from config import settings
+
 llm = OllamaLLM(
-    model="llama3",
-    base_url="http://host.docker.internal:11434"
+    model=settings.llm_model,
+    base_url=settings.ollama_base_url,
 )

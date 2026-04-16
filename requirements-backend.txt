@@ -12,3 +12,8 @@ langchain-huggingface
 sentence-transformers
 faiss-cpu
 pypdf
+
+pydantic-settings
+slowapi
+docx2txt
+python-multipart
